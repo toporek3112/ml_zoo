@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  model-server:
+    image: tensorflow/serving
+    container_name: sdc-lab-5-model-server
+    command:
+    - --model_config_file=/models/models.config
+    - --model_config_file_poll_wait_seconds=60
+    - --allow_version_labels_for_unavailable_models=true
+    ports:
+    - 8501:8501
+    tty: true
+    volumes:
+      - type: bind
+        source: ./models
+        target: /models/
