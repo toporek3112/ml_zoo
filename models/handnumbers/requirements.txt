@@ -1,0 +1,12 @@
+pillow
+pandas
+numpy
+matplotlib
+scipy
+torchserve 
+torch-model-archiver
+torch-workflow-archiver
+tensorflow==2.12
+keras==2.12
+jupyterlab_rise
+jupyter
