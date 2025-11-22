@@ -3,7 +3,7 @@ version: '3.9'
 services:
   model-server:
     image: tensorflow/serving
-    container_name: sdc-lab-5-model-server
+    container_name: mlzoo-model-server
     command:
     - --model_config_file=/models/models.config
     - --model_config_file_poll_wait_seconds=60
