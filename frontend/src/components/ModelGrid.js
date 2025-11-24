@@ -2,22 +2,21 @@ import React from "react";
 import ModelCard from "./ModelCard";
 
 const ModelGrid = ({ models, onSelect }) => {
-  console.log("Models data:", JSON.stringify(models, null, 2));
-  
   // Transform the API response into an array of model objects
   const modelArray = React.useMemo(() => {
     if (!models) return [];
     
     // Handle the case where models is an object with model names as keys
     if (typeof models === 'object' && !Array.isArray(models)) {
+      console.log(JSON.stringify(models))
       return Object.entries(models).map(([modelName, modelData]) => ({
         id: modelName,
         name: modelName,
+        error: modelData.error,
         description: `Model with ${modelData.model_version_status?.length || 0} version(s)`,
         versions: modelData.model_version_status || [],
         tags: modelData.model_version_status
-          ?.filter(version => version.state === 'AVAILABLE')
-          .map(version => `v${version.version}`) || []
+          ?.map(version => `v${version.version}`) || []
       }));
     }
     
@@ -43,6 +42,7 @@ const ModelGrid = ({ models, onSelect }) => {
           key={model.id}
           model={model}
           onClick={() => onSelect(model)}
+          onVersionSelect={(version) => onSelect(model, version)}
         />
       ))}
       

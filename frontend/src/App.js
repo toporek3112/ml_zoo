@@ -17,9 +17,11 @@ function App() {
       if (urlPath === '/' || urlPath === '') {
         setSelectedModel(null);
       } else {
-        const modelId = urlPath.replace('/model/', '');
-        if (modelId) {
-          setSelectedModel({ id: modelId, name: modelId });
+        const pathParts = urlPath.split('/');
+        if (pathParts[1] === 'model' && pathParts[2]) {
+          const modelId = pathParts[2];
+          const version = pathParts[3] || null; // Optional version parameter
+          setSelectedModel({ id: modelId, name: modelId, selectedVersion: version });
         }
       }
     };
@@ -33,9 +35,18 @@ function App() {
   }, []);
 
   // Handle model selection with URL update
-  const handleModelSelect = (model) => {
-    setSelectedModel(model);
-    window.history.pushState({}, '', `/model/${model.id}`);
+  const handleModelSelect = (model, version = null) => {
+    // Don't allow navigation to models with errors
+    if (model.error) {
+      console.warn('Cannot navigate to model with error:', model.error);
+      return;
+    }
+    
+    const modelWithVersion = { ...model, selectedVersion: version };
+    setSelectedModel(modelWithVersion);
+    
+    const url = version ? `/model/${model.id}/${version}` : `/model/${model.id}`;
+    window.history.pushState({}, '', url);
   };
 
   // Handle back to gallery
@@ -125,7 +136,11 @@ function App() {
         {/* SINGLE MODEL PAGE — only show when selected */}
         {selectedModel && selectedModel.id === "handnumbers" && (
           <div className="model-detail">
-            <DrawingCanvas models={models} />
+            <DrawingCanvas 
+              models={models} 
+              selectedModel={selectedModel}
+              onVersionChange={(version) => handleModelSelect(selectedModel, version)}
+            />
           </div>
         )}
       </div>

@@ -24,7 +24,7 @@ class ModelServiceClient:
         all_models = {}
         for model_name in known_models:
             try:
-                model_info = await self.get_model_info(model_name)
+                model_info = await self._get_model_info(model_name)
                 all_models[model_name] = model_info
             except Exception as e:
                 logger.warning(f"Failed to get info for model '{model_name}': {str(e)}")
@@ -36,7 +36,7 @@ class ModelServiceClient:
             "available_models": len([m for m in all_models.values() if "error" not in m])
         }
     
-    async def get_model_info(self, model_name: str, version: Optional[str] = None) -> Dict[str, Any]:
+    async def _get_model_info(self, model_name: str, version: Optional[str] = None) -> Dict[str, Any]:
         """
         Get model information from TensorFlow Serving.
         

@@ -2,19 +2,43 @@ import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './DrawingCanvas.css';
 
-const DrawingCanvas = ({ models }) => {
+const DrawingCanvas = ({ models, selectedModel, onVersionChange }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedVersion, setSelectedVersion] = useState('1'); // Default to version 1 (convolutional)
+  const [selectedVersion, setSelectedVersion] = useState(
+    selectedModel?.selectedVersion || '1'
+  ); // Default to version 1 (convolutional)
   const [availableVersions, setAvailableVersions] = useState([]);
 
   const canvasSize = 280; // 28x28 scaled up by 10
 
   // Extract available model versions from models prop
   const extractModelVersions = () => {
+    // Check if models data has an error (service unavailable)
+    if (!models || !models.handnumbers) {
+      console.warn('Models data not available');
+      setAvailableVersions([]);
+      return;
+    }
+
+    // Check if there's an error in the handnumbers model data
+    if (models.handnumbers.error) {
+      console.warn('Model service error:', models.handnumbers.error);
+      setAvailableVersions([]);
+      setError(`Model service unavailable: ${models.handnumbers.error}`);
+      return;
+    }
+
+    // Check if model_version_status exists
+    if (!models.handnumbers.model_version_status) {
+      console.warn('model_version_status not available');
+      setAvailableVersions([]);
+      return;
+    }
+
     const versions = models.handnumbers.model_version_status
       .map(versionInfo => ({
         version: versionInfo.version.toString(),
@@ -31,7 +55,25 @@ const DrawingCanvas = ({ models }) => {
       const highestVersion = Math.max(...availableVersionNumbers.map(v => parseInt(v))).toString();
       setSelectedVersion(highestVersion);
     }
+    
+    // Clear any previous errors if we have valid data
+    setError(null);
   };
+
+  // Handle version selection changes
+  const handleVersionChange = (newVersion) => {
+    setSelectedVersion(newVersion);
+    if (onVersionChange) {
+      onVersionChange(newVersion);
+    }
+  };
+
+  // Update selected version when selectedModel prop changes
+  useEffect(() => {
+    if (selectedModel?.selectedVersion && selectedModel.selectedVersion !== selectedVersion) {
+      setSelectedVersion(selectedModel.selectedVersion);
+    }
+  }, [selectedModel?.selectedVersion]);
 
   useEffect(() => {
     extractModelVersions();
@@ -220,7 +262,7 @@ const DrawingCanvas = ({ models }) => {
             <select 
               id="version-select"
               value={selectedVersion} 
-              onChange={(e) => setSelectedVersion(e.target.value)}
+              onChange={(e) => handleVersionChange(e.target.value)}
               className="version-dropdown"
               disabled={availableVersions.length === 0}
             >
