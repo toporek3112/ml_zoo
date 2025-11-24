@@ -1,33 +1,39 @@
-# ml_zoo
-Simple hosting of ml models accessible via a webUI
+# ML Zoo
 
-# Running
-Run with docker compose 
+A containerized machine learning model serving platform with an intuitive React.js web interface for model interaction and monitoring.
+
+## Quick Start
+
+Deploy the complete stack using Docker Compose:
+
 ```bash
 docker-compose up -d
 ```
 
-# Development
-### Backend
-Change directory 
-```bash
-cd backend
-```
+Once all containers are running, access the following services:
 
-Install dependencies 
+- **Web Interface**: http://localhost:3000/
+- **API Documentation**: http://localhost:8000/docs
+- **Monitoring Dashboard**: http://localhost:3001/
+
+## Development
+
+### Backend
+
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-Run server
+Start the development server:
 ```bash
 uvicorn main:app --reload
 ```
 
-## Testing
-### HandNumbers
+#### API Testing
+
+Test the HandNumbers model:
 ```bash
-# test predicting number 7
 curl -X POST http://localhost:8000/v1/models/handnumbers/predict \
   -H "Content-Type: application/json" \
   -d '{
@@ -36,10 +42,6 @@ curl -X POST http://localhost:8000/v1/models/handnumbers/predict \
 ```
 
 ### Frontend
-Change directory 
-```bash
-cd frontend
-```
 
 Install dependencies:
 ```bash
@@ -50,4 +52,5 @@ Start the development server:
 ```bash
 npm start
 ```
-Open http://localhost:3000
+
+The application will be available at http://localhost:3000
