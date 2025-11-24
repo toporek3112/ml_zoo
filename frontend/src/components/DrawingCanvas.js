@@ -209,10 +209,10 @@ const DrawingCanvas = ({ models, selectedModel, onVersionChange }) => {
       
       setPrediction({
         number: predictedClass,
-        confidence: (confidence * 100).toFixed(1),
+        confidence: (confidence * 100).toFixed(2),
         probabilities: probabilities.map((prob, index) => ({
           digit: index,
-          probability: (prob * 100).toFixed(1)
+          probability: (prob * 100).toFixed(2)
         }))
       });
       
