@@ -1,7 +1,7 @@
 """
 Model Router for ML Zoo Backend
 """
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Query
 from logger import logger
 from api.handnumbers import ModelHandNumbers
 from api.modeslinfo import model_service
@@ -52,15 +52,16 @@ async def get_model_info_by_version(
         raise HTTPException(status_code=503, detail=f"Cannot get model info: {str(e)}")
 
 # Model predictions endpoints
-@router.post("/models/handnumbers/predict", response_model=ModelHandNumbers.PredictResponse)
-async def predict_handnumbers(
-    request: ModelHandNumbers.PredictRequest = ...
+@router.post("/models/handnumbers/{version}/predict", response_model=ModelHandNumbers.PredictResponse)
+async def predict_handnumbers_versioned(
+    request: ModelHandNumbers.PredictRequest,
+    version: str = Path(..., description="Model version to use for prediction (0 or 1)")
 ):
-    """Predict handwritten digit from canvas drawing."""
-    logger.info("Prediction request received for handwritten digit")
+    """Predict handwritten digit from canvas drawing using specific version."""
+    logger.info(f"Prediction request received for handwritten digit (version {version})")
     
     try:
-        handnumbers = ModelHandNumbers()
+        handnumbers = ModelHandNumbers(version=version)
         handnumbers.validate_request(request.data)
         response = await handnumbers.predict(request)
         logger.info(f"Prediction completed: digit={response.prediction}, confidence={response.confidence:.3f}")

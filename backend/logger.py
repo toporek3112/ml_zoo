@@ -9,7 +9,7 @@ class JSONFormatter(logging.Formatter):
       'ts': self.formatTime(record, self.datefmt),
       'level': record.levelname.lower(),
       'caller': f"{record.filename}:{record.lineno}",
-      'msg': record.getMessage(),
+      'message': record.getMessage(),
       'logger': record.name,
       'module': record.module,
       'func': record.funcName,

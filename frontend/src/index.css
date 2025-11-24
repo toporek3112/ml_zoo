@@ -17,24 +17,95 @@ code {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+}
+
+/* Horizontal Header Bar */
+.header-bar {
+  width: 100%;
+  background: white;
+  border-bottom: 2px solid #e9ecef;
+  box-shadow: 0 0px 1.5px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
+  text-align: left;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.header h1 {
+.header-content h1 {
   color: #333;
-  margin-bottom: 10px;
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  font-weight: 600;
 }
 
-.header p {
+/* Navigation Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.breadcrumb-item {
+  background: none;
+  border: none;
   color: #666;
-  font-size: 16px;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover:not(:disabled) {
+  color: #007bff;
+}
+
+.breadcrumb-item.active {
+  color: #333;
+  font-weight: 500;
+}
+
+.breadcrumb-item:disabled {
+  cursor: default;
+  color: #333;
+}
+
+.breadcrumb-separator {
+  color: #999;
+  font-size: 14px;
+  user-select: none;
+}
+
+/* Main Container */
+.main-container {
+  flex: 1;
+  width: 100%;
+  margin: 0;
+}
+
+/* Model Gallery Section */
+.model-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 50px auto;
+}
+
+.section-title {
+  color: #333;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  text-align: left;
+  /* border-bottom: 3px solid #333; */
+  padding-bottom: 10px;
+  display: inline-block;
 }
 
 .main-content {
@@ -44,4 +115,73 @@ code {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 600px;
   width: 100%;
+}
+
+/* Grid and card styles */
+.model-grid {
+  width: 100%;
+}
+
+.model-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Loading and error states */
+.loading, .error {
+  text-align: center;
+  padding: 40px;
+  margin: 20px 0;
+  font-size: 16px;
+}
+
+.error {
+  color: #dc3545;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+}
+
+.loading {
+  color: #666;
+  font-style: italic;
+}
+
+/* Model Detail Page */
+.model-detail {
+  width: 100%;
+}
+
+.model-detail-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.back-button {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-button:hover {
+  background: #e9ecef;
+  color: #495057;
+  transform: translateX(-2px);
+}
+
+.model-title {
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
 }

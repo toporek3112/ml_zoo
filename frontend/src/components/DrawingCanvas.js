@@ -2,31 +2,74 @@ import React, { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './DrawingCanvas.css';
 
-const DrawingCanvas = () => {
+const DrawingCanvas = ({ models }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [prediction, setPrediction] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedVersion, setSelectedVersion] = useState('1'); // Default to version 1 (convolutional)
+  const [availableVersions, setAvailableVersions] = useState([]);
 
   const canvasSize = 280; // 28x28 scaled up by 10
+
+  // Extract available model versions from models prop
+  const extractModelVersions = () => {
+    const versions = models.handnumbers.model_version_status
+      .map(versionInfo => ({
+        version: versionInfo.version.toString(),
+        state: versionInfo.state,
+        status: versionInfo.status
+      }))
+      .filter(v => v.state === 'AVAILABLE'); // Only show available versions
+    
+    setAvailableVersions(versions);
+    
+    // Set default to highest available version if current selection isn't available
+    const availableVersionNumbers = versions.map(v => v.version);
+    if (availableVersionNumbers.length > 0 && !availableVersionNumbers.includes(selectedVersion)) {
+      const highestVersion = Math.max(...availableVersionNumbers.map(v => parseInt(v))).toString();
+      setSelectedVersion(highestVersion);
+    }
+  };
+
+  useEffect(() => {
+    extractModelVersions();
+  }, [models, selectedVersion]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     
-    // Set canvas size and styles
-    canvas.width = canvasSize;
-    canvas.height = canvasSize;
+    // Make canvas responsive to its container
+    const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      // Set canvas size to fill container
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
+      
+      // Set drawing styles
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = Math.max(8, containerWidth * 0.02); // Responsive line width
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      // Clear canvas with white background
+      clearCanvas();
+    };
     
-    // Set drawing styles
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 15;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    // Initial resize
+    resizeCanvas();
     
-    // Clear canvas with white background
-    clearCanvas();
+    // Listen for window resize
+    window.addEventListener('resize', resizeCanvas);
+    
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    };
   }, []);
 
   const clearCanvas = () => {
@@ -41,18 +84,24 @@ const DrawingCanvas = () => {
   const getMousePos = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
     };
   };
 
   const getTouchPos = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
     return {
-      x: e.touches[0].clientX - rect.left,
-      y: e.touches[0].clientY - rect.top
+      x: (e.touches[0].clientX - rect.left) * scaleX,
+      y: (e.touches[0].clientY - rect.top) * scaleY
     };
   };
 
@@ -105,7 +154,7 @@ const DrawingCanvas = () => {
       console.log('Sending image data length:', imageData.length);
       console.log('Image data preview:', imageData.substring(0, 50) + '...');
       
-      const response = await axios.post('http://localhost:8000/v1/models/handnumbers/predict', {
+      const response = await axios.post(`http://localhost:8000/v1/models/handnumbers/${selectedVersion}/predict`, {
         data: imageData
       });
       
@@ -146,9 +195,12 @@ const DrawingCanvas = () => {
 
   return (
     <div className="drawing-canvas-container">
+      {/* Left side - Canvas and Controls (1/3) */}
       <div className="canvas-section">
-        <h3>Draw a number (0-9)</h3>
         <div className="canvas-wrapper">
+          <div className="canvas-heading-overlay">
+            <h3>Draw a number (0-9)</h3>
+          </div>
           <canvas
             ref={canvasRef}
             className="drawing-canvas"
@@ -162,7 +214,28 @@ const DrawingCanvas = () => {
           />
         </div>
         
+        {/* Controls beneath canvas */}
         <div className="controls">
+          <div className="version-selector">
+            <select 
+              id="version-select"
+              value={selectedVersion} 
+              onChange={(e) => setSelectedVersion(e.target.value)}
+              className="version-dropdown"
+              disabled={availableVersions.length === 0}
+            >
+              {availableVersions.length > 0 ? (
+                availableVersions.map(versionInfo => (
+                  <option key={versionInfo.version} value={versionInfo.version}>
+                    v{versionInfo.version}
+                  </option>
+                ))
+              ) : (
+                <option value="">No versions available</option>
+              )}
+            </select>
+          </div>
+          
           <button 
             className="btn btn-secondary" 
             onClick={clearCanvas}
@@ -179,43 +252,46 @@ const DrawingCanvas = () => {
         </div>
       </div>
 
-      <div className="results-section">
-        {error && (
-          <div className="error">
-            <h4>Error</h4>
-            <p>{error}</p>
-          </div>
-        )}
-
-        {prediction && (
-          <div className="prediction-result">
-            <h4>Prediction Result</h4>
-            <div className="main-prediction">
-              <span className="predicted-number">{prediction.number}</span>
-              <span className="confidence">({prediction.confidence}% confident)</span>
+      {/* Right side - Results (2/3) */}
+      <div className="controls-results-section">
+        {/* Results section */}
+        <div className="results-section">
+          {error && (
+            <div className="error">
+              <h4>Error</h4>
+              <p>{error}</p>
             </div>
-            
-            <h5>All Probabilities:</h5>
-            <div className="probabilities-grid">
-              {prediction.probabilities.map((item) => (
-                <div 
-                  key={item.digit} 
-                  className={`probability-item ${item.digit === prediction.number ? 'highest' : ''}`}
-                >
-                  <span className="digit">{item.digit}</span>
-                  <span className="prob">{item.probability}%</span>
-                  <div className="prob-bar">
-                    <div 
-                      className="prob-fill" 
-                      style={{width: `${item.probability}%`}}
-                    ></div>
+          )}
+
+          {prediction && (
+            <div className="prediction-result">
+              <h4>Prediction Result</h4>
+              <div className="main-prediction">
+                <span className="predicted-number">{prediction.number}</span>
+                <span className="confidence">({prediction.confidence}% confident)</span>
+              </div>
+              
+              <h5>Probability Distribution:</h5>
+              <div className="probabilities-grid">
+                {prediction.probabilities.map((item) => (
+                  <div 
+                    key={item.digit} 
+                    className={`probability-item ${item.digit === prediction.number ? 'highest' : ''}`}
+                  >
+                    <span className="digit">{item.digit}</span>
+                    <span className="prob">{item.probability}%</span>
+                    <div className="prob-bar">
+                      <div 
+                        className="prob-fill" 
+                        style={{width: `${item.probability}%`}}
+                      ></div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-
+          )}
+        </div>
       </div>
     </div>
   );

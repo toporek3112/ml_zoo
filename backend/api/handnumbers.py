@@ -3,10 +3,11 @@ Handwritten Numbers Model
 """
 import base64
 import io
+import os
+import datetime
 import numpy as np
 import aiohttp
 import string
-from typing import List
 from config import config
 from logger import logger
 from .base import ModelBase
@@ -98,6 +99,22 @@ class ModelHandNumbers(ModelBase):
             
             logger.info(f"Predicted digit: {predicted_digit}, confidence: {confidence:.3f}")
             
+            # Debug configuration
+            logger.debug(f"SAVE_IMAGES config: {config.SAVE_IMAGES}, type: {type(config.SAVE_IMAGES)}")
+            logger.debug(f"SAVE_IMAGES_PATH config: {config.SAVE_IMAGES_PATH}")
+            
+            # Save images if enabled
+            if config.SAVE_IMAGES:
+                logger.info("Image saving is enabled, attempting to save images...")
+                original_path = self._save_image_if_enabled(image_bytes, predicted_digit, confidence)
+                processed_path = self._save_processed_image_if_enabled(processed_image, predicted_digit, confidence)
+                if original_path or processed_path:
+                    logger.info(f"Images saved - Original: {original_path}, Processed: {processed_path}")
+                else:
+                    logger.warning("Image saving was enabled but no images were saved")
+            else:
+                logger.info("Image saving is disabled")
+            
             return self.PredictResponse(
                 prediction=predicted_digit,
                 confidence=confidence,
@@ -137,3 +154,94 @@ class ModelHandNumbers(ModelBase):
         logger.info(f"Final processed shape: {img_array.shape}, min: {img_array.min():.3f}, max: {img_array.max():.3f}")
         
         return img_array
+        
+    def _save_image_if_enabled(self, image_bytes: bytes, predicted_digit: int, confidence: float) -> str:
+        """Save the original image if SAVE_IMAGES is enabled.
+        
+        Args:
+            image_bytes: Original image bytes from request
+            predicted_digit: Predicted digit for filename
+            confidence: Confidence score for filename
+            
+        Returns:
+            str: Path where image was saved, or empty string if not saved
+        """
+        logger.info(f"_save_image_if_enabled called: config.SAVE_IMAGES = {config.SAVE_IMAGES}")
+        
+        if not config.SAVE_IMAGES:
+            logger.info("Image saving is disabled, returning empty string")
+            return ""
+            
+        try:
+            logger.info(f"Attempting to save image to: {config.SAVE_IMAGES_PATH}")
+            
+            # Create save directory if it doesn't exist
+            save_dir = config.SAVE_IMAGES_PATH
+            os.makedirs(save_dir, exist_ok=True)
+            logger.info(f"Directory created/verified: {save_dir}")
+            
+            # Generate filename with timestamp, prediction, and confidence
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"digit_{predicted_digit}_conf_{confidence:.3f}_{timestamp}.png"
+            filepath = os.path.join(save_dir, filename)
+            logger.info(f"Generated filepath: {filepath}")
+            
+            # Save the original image
+            with open(filepath, 'wb') as f:
+                f.write(image_bytes)
+                
+            logger.info(f"Image saved successfully: {filepath}")
+            return filepath
+            
+        except Exception as e:
+            logger.error(f"Failed to save image: {str(e)}")
+            logger.error(f"Exception type: {type(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return ""
+    
+    def _save_processed_image_if_enabled(self, processed_array: np.ndarray, predicted_digit: int, confidence: float) -> str:
+        """Save the processed 28x28 image if SAVE_IMAGES is enabled.
+        
+        Args:
+            processed_array: Processed numpy array (1, 28, 28, 1)
+            predicted_digit: Predicted digit for filename
+            confidence: Confidence score for filename
+            
+        Returns:
+            str: Path where processed image was saved, or empty string if not saved
+        """
+        if not config.SAVE_IMAGES:
+            return ""
+            
+        try:
+            from PIL import Image
+            
+            # Create save directory if it doesn't exist
+            save_dir = config.SAVE_IMAGES_PATH
+            os.makedirs(save_dir, exist_ok=True)
+            
+            # Convert processed array back to image
+            # Remove batch and channel dimensions: (1, 28, 28, 1) -> (28, 28)
+            img_data = processed_array.squeeze()
+            
+            # Convert back to 0-255 range
+            img_data = (img_data * 255).astype(np.uint8)
+            
+            # Create PIL Image
+            image = Image.fromarray(img_data, mode='L')
+            
+            # Generate filename
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"processed_digit_{predicted_digit}_conf_{confidence:.3f}_{timestamp}.png"
+            filepath = os.path.join(save_dir, filename)
+            
+            # Save the processed image
+            image.save(filepath)
+            
+            logger.info(f"Processed image saved: {filepath}")
+            return filepath
+            
+        except Exception as e:
+            logger.error(f"Failed to save processed image: {str(e)}")
+            return ""

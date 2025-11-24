@@ -1,1 +1,4 @@
 models/*/models/
+*.pyc
+*.zip
+images
