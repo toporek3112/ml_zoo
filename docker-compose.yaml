@@ -16,28 +16,28 @@ services:
         source: ./models
         target: /models/
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: mlzoo-backend
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     - MLZOO_TF_MODEL_SERVING_URL=http://model-server:8501
-  #   depends_on:
-  #     - model-server
-  #   volumes:
-  #     - ./backend:/app
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mlzoo-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MLZOO_TF_MODEL_SERVING_URL=http://model-server:8501
+    depends_on:
+      - model-server
+    volumes:
+      - ./backend:/app
     
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: mlzoo-frontend
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
-  #   environment:
-  #     - REACT_APP_API_URL=http://localhost:8000
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mlzoo-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
