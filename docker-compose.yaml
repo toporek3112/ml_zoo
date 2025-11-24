@@ -24,7 +24,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - MODEL_SERVER_URL=http://model-server:8501
+      - MLZOO_TF_MODEL_SERVING_URL=http://model-server:8501
     depends_on:
       - model-server
     volumes:
