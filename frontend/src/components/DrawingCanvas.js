@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import './DrawingCanvas.css';
 
@@ -13,7 +13,51 @@ const DrawingCanvas = ({ models, selectedModel, onVersionChange }) => {
   ); // Default to version 1 (convolutional)
   const [availableVersions, setAvailableVersions] = useState([]);
 
-  const canvasSize = 280; // 28x28 scaled up by 10
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    // Make canvas responsive to its container
+    const resizeCanvas = () => {
+      const container = canvas.parentElement;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      // Set canvas size to fill container
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
+
+      // Set drawing styles
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = Math.max(8, containerWidth * 0.02); // Responsive line width
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Clear canvas with white background
+      clearCanvas();
+    };
+
+    // Initial resize
+    resizeCanvas();
+
+    // Listen for window resize
+    window.addEventListener('resize', resizeCanvas);
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);
+
+  // Update selected version when selectedModel prop changes
+  useEffect(() => {
+    if (selectedModel?.selectedVersion && selectedModel.selectedVersion !== selectedVersion) {
+      setSelectedVersion(selectedModel.selectedVersion);
+    }
+  }, [selectedModel?.selectedVersion]);
+
+  useEffect(() => {
+    extractModelVersions();
+  }, [models, selectedVersion]);
 
   // Extract available model versions from models prop
   const extractModelVersions = () => {
@@ -68,52 +112,7 @@ const DrawingCanvas = ({ models, selectedModel, onVersionChange }) => {
     }
   };
 
-  // Update selected version when selectedModel prop changes
-  useEffect(() => {
-    if (selectedModel?.selectedVersion && selectedModel.selectedVersion !== selectedVersion) {
-      setSelectedVersion(selectedModel.selectedVersion);
-    }
-  }, [selectedModel?.selectedVersion]);
-
-  useEffect(() => {
-    extractModelVersions();
-  }, [models, selectedVersion]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    
-    // Make canvas responsive to its container
-    const resizeCanvas = () => {
-      const container = canvas.parentElement;
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
-      
-      // Set canvas size to fill container
-      canvas.width = containerWidth;
-      canvas.height = containerHeight;
-      
-      // Set drawing styles
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = Math.max(8, containerWidth * 0.02); // Responsive line width
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      
-      // Clear canvas with white background
-      clearCanvas();
-    };
-    
-    // Initial resize
-    resizeCanvas();
-    
-    // Listen for window resize
-    window.addEventListener('resize', resizeCanvas);
-    
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-    };
-  }, []);
-
+  // Cancas drawing functions
   const clearCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

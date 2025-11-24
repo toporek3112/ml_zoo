@@ -29,14 +29,7 @@ const ModelGrid = ({ models, onSelect }) => {
   }, [models]);
 
   return (
-    <div
-      className="model-grid"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        padding: "20px"
-      }}
-    >
+    <div className="model-grid">
       {modelArray.map((model) => (
         <ModelCard
           key={model.id}

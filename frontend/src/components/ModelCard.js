@@ -1,13 +1,4 @@
 
-const cardStyle = {
-  padding: "20px",
-  borderRadius: "12px",
-  border: "1px solid #ddd",
-  background: "white",
-  cursor: "pointer",
-  transition: "0.2s",
-};
-
 const ModelCard = ({ model, onClick, onVersionSelect }) => {
   const availableVersions = model.versions?.filter(v => v.state === 'AVAILABLE') || [];
   const totalVersions = model.versions?.length || 0;
@@ -25,14 +16,9 @@ const ModelCard = ({ model, onClick, onVersionSelect }) => {
     <div 
       className="model-card"
       style={{
-        ...cardStyle,
         opacity: hasError ? 0.8 : 1,
         cursor: hasError ? 'not-allowed' : 'pointer',
         borderColor: hasError ? '#dc3545' : '#ddd',
-        ':hover': {
-          transform: hasError ? 'none' : 'translateY(-2px)',
-          boxShadow: hasError ? 'none' : '0 4px 12px rgba(0,0,0,0.15)'
-        }
       }} 
       onClick={hasError ? undefined : onClick}
     >

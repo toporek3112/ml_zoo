@@ -2,21 +2,49 @@ import React, { useEffect, useState } from 'react';
 import DrawingCanvas from './components/DrawingCanvas';
 import ModelGrid from './components/ModelGrid';
 
-const API_URL = "http://localhost:8000/v1/models";
+const API_URL = window.RUNTIME_ENV.MODEL_SERVING_API || "http://localhost:8000/v1/models";
 
 function App() {
   const [models, setModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedModel, setSelectedModel] = useState(null);
 
-  // Handle URL-based navigation
   useEffect(() => {
+    // fetch all models on load
+    const fetchModels = async () => {
+      try {
+        console.debug("Calling Model Serving Backend on:", API_URL)
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to fetch models");
+        const data = await res.json();
+        console.log("Raw API response:", data);
+
+        // Handle the nested structure from the API
+        if (data.models) {
+          setModels(data.models);
+        } else if (data && typeof data === 'object') {
+          setModels(data);
+        } else {
+          setModels({});
+        }
+      } catch (err) {
+        console.error("Error fetching models:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+
+    // Handle URL-based navigation
     const handlePopState = () => {
-      const urlPath = window.location.pathname;
+    const urlPath = window.location.pathname;
       if (urlPath === '/' || urlPath === '') {
         setSelectedModel(null);
-      } else {
+      }
+      else {
         const pathParts = urlPath.split('/');
         if (pathParts[1] === 'model' && pathParts[2]) {
           const modelId = pathParts[2];
@@ -25,7 +53,7 @@ function App() {
         }
       }
     };
-
+  
     // Handle initial URL
     handlePopState();
     
@@ -33,6 +61,15 @@ function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Update document title based on current page
+  useEffect(() => {
+    if (selectedModel) {
+      document.title = `${selectedModel.name || selectedModel.id} - ML Zoo`;
+    } else {
+      document.title = 'Model Gallery - ML Zoo';
+    }
+  }, [selectedModel]);
 
   // Handle model selection with URL update
   const handleModelSelect = (model, version = null) => {
@@ -54,43 +91,6 @@ function App() {
     setSelectedModel(null);
     window.history.pushState({}, '', '/');
   };
-
-  // Update document title based on current page
-  useEffect(() => {
-    if (selectedModel) {
-      document.title = `${selectedModel.name || selectedModel.id} - ML Zoo`;
-    } else {
-      document.title = 'Model Gallery - ML Zoo';
-    }
-  }, [selectedModel]);
-
-  // fetch all models on load
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error("Failed to fetch models");
-        const data = await res.json();
-        console.log("Raw API response:", data);
-        
-        // Handle the nested structure from the API
-        if (data.models) {
-          setModels(data.models);
-        } else if (data && typeof data === 'object') {
-          setModels(data);
-        } else {
-          setModels({});
-        }
-      } catch (err) {
-        console.error("Error fetching models:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchModels();
-  }, []);
 
   return (
     <div className="app">
