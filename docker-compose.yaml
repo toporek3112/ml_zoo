@@ -8,8 +8,11 @@ services:
     - --model_config_file=/models/models.config
     - --model_config_file_poll_wait_seconds=60
     - --allow_version_labels_for_unavailable_models=true
+    - --rest_api_port=8501
+    - --monitoring_config_file=/models/monitoring.config
     ports:
     - 8501:8501
+    - 8500:8500  # gRPC port (optional, for direct gRPC access)
     tty: true
     volumes:
       - type: bind
@@ -41,3 +44,41 @@ services:
       - backend
     environment:
       - REACT_APP_API_URL=http://localhost:8000
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    container_name: mlzoo-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - model-server
+      - backend
+
+  grafana:
+    image: grafana/grafana:12.3
+    container_name: mlzoo-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=postgres
+      - GF_SECURITY_ADMIN_USER=postgres
+    volumes:
+      - ./docker/grafana/datasource:/etc/grafana/provisioning/datasources
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus_data:
+  grafana_data:
