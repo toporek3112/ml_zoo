@@ -514,8 +514,8 @@ const ClusteringCanvas = ({ models, selectedModel, onVersionChange }) => {
               <div>
                 <h4>Instructions:</h4>
                 <ul>
-                  <li>Click anywhere on the coordinate system to add points</li>
                   <li>Choose the number of clusters using the dropdown above</li>
+                  <li>Click anywhere on the coordinate system to add points</li>
                   <li>Clustering starts automatically after adding 2+ points</li>
                   <li>Points are colored by their cluster assignment</li>
                   <li>Diamonds (♦) represent cluster centroids</li>
