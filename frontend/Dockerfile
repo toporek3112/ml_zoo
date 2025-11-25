@@ -19,9 +19,9 @@ RUN npm run build
 RUN npm install -g serve
 
 # Copy entrypoint
-COPY docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+# COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+# RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["serve", "-s", "build", "-l", "3000"]

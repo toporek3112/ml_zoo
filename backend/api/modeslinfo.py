@@ -52,6 +52,8 @@ class ModelServiceClient:
                 # Get all versions for the model
                 url = f"{self.base_url}/v1/models/{model_name}"
             
+            logger.info(f"Making request to: {url}")
+            
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     if response.status == 200:
