@@ -79,8 +79,8 @@ async def predict_handnumbers_versioned(
         logger.error(f"Prediction failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.post("/models/clustering/{version}/predict", response_model=ModelKMeansPlusPlus.PredictResponse)
-async def predict_clustering(
+@router.post("/models/kmeans/{version}/predict", response_model=ModelKMeansPlusPlus.PredictResponse)
+async def predict_kmeans_plus_plus(
     request: ModelKMeansPlusPlus.PredictRequest,
     version: str = Path(..., description="Model version to use for prediction (1-5 for k=1 to k=5 clusters)")
 ):
@@ -91,7 +91,7 @@ async def predict_clustering(
         kmeans = ModelKMeansPlusPlus(version)
         logger.debug(request)
         response = await kmeans.predict(request)
-        logger.info(f"Clustering completed successfully")
+        logger.info(f"KMeans++ completed successfully")
         
         return response
         
@@ -102,5 +102,5 @@ async def predict_clustering(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Clustering prediction failed: {e}")
+        logger.error(f"KMeans++ prediction failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

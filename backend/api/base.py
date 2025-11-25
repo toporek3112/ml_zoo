@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Type
 from pydantic import BaseModel
-from typing import List
-
-
 class ModelBase(ABC):
     """Base class for calling served ML models via API requests.
     
@@ -17,13 +14,11 @@ class ModelBase(ABC):
     # Common request/response types for image classification models
     class BasePredictRequest(BaseModel):
         """Common request model for image classification."""
-        data: str  # Base64 encoded image (with or without data URL prefix)
+        pass
 
     class BasePredictResponse(BaseModel):
         """Common response model for image classification."""
-        prediction: int  # Predicted class
-        confidence: float  # Confidence score
-        probabilities: List[float]  # Probabilities for each class
+        pass
 
     # Type variables for the required types
     RequestType = TypeVar('RequestType', bound=BasePredictRequest)

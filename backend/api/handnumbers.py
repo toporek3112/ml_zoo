@@ -8,16 +8,26 @@ import datetime
 import numpy as np
 import aiohttp
 import string
+from typing import List
 from config import config
 from logger import logger
 from .base import ModelBase
 
 class ModelHandNumbers(ModelBase):
     """Handwritten numbers model using TensorFlow Serving."""
+
+    class PredictRequest(ModelBase.BasePredictRequest):
+        """Request model for K-Means clustering - reuses data field for JSON points."""
+        data: str  # Base64 encoded image (with or without data URL prefix)
+        
+        pass
     
-    PredictRequest = ModelBase.BasePredictRequest
-    PredictResponse = ModelBase.BasePredictResponse
-    
+    class PredictResponse(ModelBase.BasePredictResponse):
+        """Response model for K-Means clustering - extends base response with predictions array."""
+        prediction: int  # Predicted class
+        confidence: float  # Confidence score
+        probabilities: List[float]  # Probabilities for each class
+
     def __init__(self, version: str = "1"):
         """Initialize with URL from config."""
         self.url = config.TF_MODEL_SERVING_URL

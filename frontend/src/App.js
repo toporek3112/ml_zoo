@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DrawingCanvas from './components/DrawingCanvas';
+import ClusteringCanvas from './components/ClusteringCanvas';
 import ModelGrid from './components/ModelGrid';
 
 const API_URL = window.RUNTIME_ENV.MODEL_SERVING_API || "http://localhost:8000/v1/models";
@@ -141,6 +142,47 @@ function App() {
               selectedModel={selectedModel}
               onVersionChange={(version) => handleModelSelect(selectedModel, version)}
             />
+          </div>
+        )}
+
+        {/* CLUSTERING MODEL PAGE */}
+        {selectedModel && selectedModel.id === "kmeans" && (
+          <div className="model-detail">
+            <ClusteringCanvas 
+              models={models} 
+              selectedModel={selectedModel}
+              onVersionChange={(version) => handleModelSelect(selectedModel, version)}
+            />
+          </div>
+        )}
+
+        {/* FALLBACK FOR OTHER MODELS */}
+        {selectedModel && selectedModel.id !== "handnumbers" && selectedModel.id !== "kmeans" && (
+          <div className="model-detail">
+            <div style={{ 
+              padding: '40px', 
+              textAlign: 'center', 
+              background: 'white', 
+              borderRadius: '8px', 
+              margin: '20px',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+            }}>
+              <h3>Model Interface Not Available</h3>
+              <p>
+                The model "{selectedModel.name || selectedModel.id}" doesn't have a custom interface yet.
+              </p>
+              <p>
+                Available models with interfaces: <strong>handnumbers</strong> (digit recognition) 
+                and <strong>kmeans</strong> (k-means clustering visualization).
+              </p>
+              <button 
+                className="btn btn-primary"
+                onClick={handleBackToGallery}
+                style={{ marginTop: '20px' }}
+              >
+                Back to Model Gallery
+              </button>
+            </div>
           </div>
         )}
       </div>
