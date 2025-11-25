@@ -22,8 +22,7 @@ A modern, containerized machine learning platform featuring interactive web inte
 | **RESTful API** | OpenAPI/Swagger documentation with structured endpoints |
 
 ## 🚀 Quick Start
-
-### One-Command Deployment
+Before you are able to run the setup run at least one of the Jupyter notebooks in the [models](./models) folder.
 
 ```bash
 # Deploy complete platform
@@ -228,13 +227,12 @@ Access pre-configured dashboards at [http://localhost:3001](http://localhost:300
 - **TensorFlow Serving Metrics**
 
 
-## 🤝 Contributing
-
-1. **Fork** the repository
-2. **Create** feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
+## Implementing new Models
+1. Create a new folder in the models folder
+2. Create your notbook, train your model and test it
+3. Run it locally with tensorflow serve and test via curl commands
+4. Impelement the Backend endpoint and verify the reponse has the deisred value
+5. Implement a new frontend component in the React 
 
 ## 📄 License
 
