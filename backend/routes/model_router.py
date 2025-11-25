@@ -4,6 +4,7 @@ Model Router for ML Zoo Backend
 from fastapi import APIRouter, HTTPException, Path, Query
 from logger import logger
 from api.handnumbers import ModelHandNumbers
+from api.kmeansPlusPlus import ModelKMeansPlusPlus
 from api.modeslinfo import model_service
 
 # Create router with /v1/ prefix
@@ -76,4 +77,30 @@ async def predict_handnumbers_versioned(
         raise
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.post("/models/clustering/{version}/predict", response_model=ModelKMeansPlusPlus.PredictResponse)
+async def predict_clustering(
+    request: ModelKMeansPlusPlus.PredictRequest,
+    version: str = Path(..., description="Model version to use for prediction (1-5 for k=1 to k=5 clusters)")
+):
+    """Perform K-means clustering on 2D points using specific version."""
+    logger.info(f"Prediction request received for KMeans++ (cluster {version})")
+    
+    try:
+        kmeans = ModelKMeansPlusPlus(version)
+        logger.debug(request)
+        response = await kmeans.predict(request)
+        logger.info(f"Clustering completed successfully")
+        
+        return response
+        
+    except ValueError as e:
+        # Validation errors from validate_request
+        logger.warning(f"Validation failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid data: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Clustering prediction failed: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")

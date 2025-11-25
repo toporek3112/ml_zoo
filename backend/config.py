@@ -16,7 +16,7 @@ class __Settings(BaseSettings):
     TF_MODEL_SERVING_URL: str = 'http://localhost:8501'
 
     # Known Models (comma-separated)
-    KNOWN_MODELS: str = 'handnumbers'
+    KNOWN_MODELS: str = 'handnumbers,clustering'
     
     # Image Saving Configuration
     SAVE_IMAGES: bool = False
